@@ -49,7 +49,7 @@ typedef unsigned int uint;
 #define THREAD_3D_UNIT   8
 #define THREAD_2D_UNIT   16
 #define THREAD_1D_UNIT   256
-#define DIV_CEILING(a, b) ((a + b - 1) / b)
+#define DIV_CEILING(a, b) ((float(a) + float(b) - float(1)) / float(b))
 
 #define M_PIf 3.14159265358f /* pi */
 }

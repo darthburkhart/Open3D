@@ -38,6 +38,7 @@ else ()
 endif ()
 
 if (BUILD_EIGEN3)
+    message("${PROJECT_SOURCE_DIR}/3rdparty/Eigen")
     set(EIGEN3_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/3rdparty/Eigen")
     INSTALL_HEADERS(Eigen)
 endif ()

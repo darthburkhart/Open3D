@@ -24,15 +24,24 @@ int FastGlobalRegistrationForPointClouds(
     auto source = CreatePointCloudFromFile(source_ply_path);
     auto target = CreatePointCloudFromFile(target_ply_path);
 
-    auto source_down = source->VoxelDownSample(0.05);
-    auto target_down = target->VoxelDownSample(0.05);
-
-    auto source_cpu = *source_down;
-    auto target_cpu = *target_down;
+    auto source_down = source->VoxelDownSample(3.);
+    auto target_down = target->VoxelDownSample(3.);
 
     /** Load data **/
     cuda::FastGlobalRegistrationCuda fgr;
     fgr.Initialize(*source_down, *target_down);
+
+    clock_t time = clock();
+
+    bool finished = false;
+    int iter = 0, max_iter = 64;
+    while (!finished) {
+                fgr.DoSingleIteration(iter++);
+                if (iter >= max_iter)
+                    finished = true;
+    }
+
+    LogDebug("time {}\n", clock() - time);
 
     /** Prepare visualizer **/
     VisualizerWithCudaModule visualizer;
@@ -46,34 +55,48 @@ int FastGlobalRegistrationForPointClouds(
     visualizer.AddGeometry(source_down);
     visualizer.AddGeometry(target_down);
 
-    bool finished = false;
-    int iter = 0, max_iter = 64;
-    visualizer.RegisterKeyCallback(GLFW_KEY_SPACE, [&](Visualizer *vis) {
-        if (finished) return false;
 
-        /* FGR (1 iteration) */
-        fgr.DoSingleIteration(iter++);
+    auto source_cpu = *source_down;
+    auto target_cpu = *target_down;
+    /* Update geometry */
+    *source_down = *fgr.source_.Download();
+    if (source_cpu.HasColors()) {
+        source_down->colors_ = source_cpu.colors_;
+    }
+    *target_down = *fgr.target_.Download();
+    if (target_cpu.HasColors()) {
+        target_down->colors_ = target_cpu.colors_;
+    }
+    visualizer.UpdateGeometry();
+    visualizer.ResetViewPoint(true);
 
-        /* Update geometry */
-        *source_down = *fgr.source_.Download();
-        if (source_cpu.HasColors()) {
-            source_down->colors_ = source_cpu.colors_;
-        }
-        *target_down = *fgr.target_.Download();
-        if (target_cpu.HasColors()) {
-            target_down->colors_ = target_cpu.colors_;
-        }
-        vis->UpdateGeometry();
 
-        if (iter == 1) {
-            vis->ResetViewPoint(true);
-        }
+//    visualizer.RegisterKeyCallback(GLFW_KEY_SPACE, [&](Visualizer *vis) {
+//        if (finished) return false;
 
-        /* Update flags */
-        if (iter >= max_iter)
-            finished = true;
-        return !finished;
-    });
+//        /* FGR (1 iteration) */
+//        fgr.DoSingleIteration(iter++);
+
+//        /* Update geometry */
+//        *source_down = *fgr.source_.Download();
+//        if (source_cpu.HasColors()) {
+//            source_down->colors_ = source_cpu.colors_;
+//        }
+//        *target_down = *fgr.target_.Download();
+//        if (target_cpu.HasColors()) {
+//            target_down->colors_ = target_cpu.colors_;
+//        }
+//        vis->UpdateGeometry();
+
+//        if (iter == 1) {
+//            vis->ResetViewPoint(true);
+//        }
+
+//        /* Update flags */
+//        if (iter >= max_iter)
+//            finished = true;
+//        return !finished;
+//    });
 
     bool should_close = false;
     while (!should_close) {
@@ -90,9 +113,12 @@ int main(int argc, char **argv) {
         source_path = argv[1];
         target_path = argv[2];
     } else {
-        std::string test_data_path = "/media/wei/Data/data/redwood_simulated/livingroom1-clean/fragments_cuda";
-        source_path = test_data_path + "/fragment_005.ply";
-        target_path = test_data_path + "/fragment_008.ply";
+//        std::string test_data_path = "/media/wei/Data/data/redwood_simulated/livingroom1-clean/fragments_cuda";
+//        source_path = test_data_path + "/fragment_005.ply";
+//        target_path = test_data_path + "/fragment_008.ply";
+        std::string test_data_path = "C:/Users/Seikowave/Desktop";
+        source_path = test_data_path + "/test150 - Cloud.ply";
+        target_path = test_data_path + "/test151 - Cloud.ply";
     }
 
     FastGlobalRegistrationForPointClouds(source_path, target_path);

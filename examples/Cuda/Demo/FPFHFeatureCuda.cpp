@@ -17,9 +17,12 @@ int main(int argc, char **argv) {
         source_path = argv[1];
         target_path = argv[2];
     } else { /** point clouds in ColoredICP is too flat **/
-        std::string test_data_path = "../../../examples/TestData/ICP";
-        source_path = test_data_path + "/cloud_bin_0.pcd";
-        target_path = test_data_path + "/cloud_bin_1.pcd";
+        std::string test_data_path = "C:/Users/Seikowave/Desktop";
+        source_path = test_data_path + "/test150 - Cloud.ply";
+        target_path = test_data_path + "/test151 - Cloud.ply";
+//        std::string test_data_path = "../../../examples/TestData/ICP";
+//        source_path = test_data_path + "/cloud_bin_0.pcd";
+//        target_path = test_data_path + "/cloud_bin_1.pcd";
     }
 
     SetVerbosityLevel(VerbosityLevel::Debug);
@@ -27,36 +30,44 @@ int main(int argc, char **argv) {
     auto source_origin = CreatePointCloudFromFile(source_path);
     auto target_origin = CreatePointCloudFromFile(target_path);
 
-    auto source = source_origin->VoxelDownSample(0.05);
-    auto target = target_origin->VoxelDownSample(0.05);
+    auto source = source_origin->VoxelDownSample(3.);
+    auto target = target_origin->VoxelDownSample(3.);
 
     auto source_feature_cpu = PreprocessPointCloud(*source);
     auto target_feature_cpu = PreprocessPointCloud(*target);
 
     open3d::cuda::FeatureExtractorCuda source_feature_extractor;
     source_feature_extractor.Compute(
-        *source, KDTreeSearchParamHybrid(0.25, 100));
+        *source, KDTreeSearchParamHybrid(8., 100));
     auto source_feature_cuda =
         source_feature_extractor.fpfh_features_.Download();
 
     open3d::cuda::FeatureExtractorCuda target_feature_extractor;
     target_feature_extractor.Compute(
-        *target, KDTreeSearchParamHybrid(0.25, 100));
+        *target, KDTreeSearchParamHybrid(8., 100));
     auto target_feature_cuda =
         target_feature_extractor.fpfh_features_.Download();
 
     /** 1. Check feature extraction **/
     int valid_count = 0;
+    bool asdf = false;
     for (int i = 0; i < source_feature_cpu->Num(); ++i) {
         float norm = (
             source_feature_cpu->data_.col(i).cast<float>() - source_feature_cuda.col(i)).norm();
+        if (!asdf) {
+            asdf = true;
+            LogInfo("Test: {} {} {}\n",
+                      norm, source_feature_cpu->Dimension(),
+                    .9  * source_feature_cpu->Dimension());
+        }
         if (norm < 0.01f * source_feature_cpu->Dimension()) {
             valid_count++;
         }
     }
-    LogInfo("Valid features: {} ({} / {})\n",
+    LogInfo("Valid features: {} ({} / {}) {}\n",
               (float) valid_count / source_feature_cpu->Num(),
-              valid_count, source_feature_cpu->Num());
+              valid_count, source_feature_cpu->Num(),
+            source_feature_cpu->Dimension());
 
     /** 2. Check feature matching **/
     KDTreeFlann target_feature_tree(*target_feature_cpu);

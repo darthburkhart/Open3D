@@ -24,6 +24,8 @@ void FeatureCudaKernelCaller::ComputeSPFHFeature(
     const dim3 blocks(DIV_CEILING(
         extractor.neighbors_.indices_.size(), THREAD_1D_UNIT));
     const dim3 threads(THREAD_1D_UNIT);
+//    utility::LogDebug("{:d} {:d} {:d}.\n",
+//                      threads.x, blocks.x, extractor.neighbors_.indices_.size());
     ComputeSPFHFeatureKernel<<<blocks, threads>>>(*extractor.device_);
     CheckCuda(cudaDeviceSynchronize());
     CheckCuda(cudaGetLastError());

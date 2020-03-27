@@ -157,23 +157,30 @@ RegistrationResultCuda RegistrationCuda::DoSingleIteration(int iter) {
     delta.transformation_ = Eigen::Matrix4d::Identity();
     delta.fitness_ = delta.inlier_rmse_ = 0;
 
+    clock_t time = clock();
     GetCorrespondences();
 
+    int corrTime = clock() - time;
     if (correspondences_.indices_.size() < 10) {
         utility::LogError("Insufficient correspondences: {}\n",
                             correspondences_.indices_.size());
         return delta;
     }
 
+    time = clock();
     delta = BuildAndSolveLinearSystem();
+    int bAndSTime = clock() - time;
 
     utility::LogDebug("Iteration {}: inlier rmse = {}, fitness = {}\n",
                         iter, delta.inlier_rmse_, delta.fitness_);
 
+    time = clock();
     TransformSourcePointCloud(delta.transformation_);
     transform_source_to_target_ = delta.transformation_ *
         transform_source_to_target_;
+    int tTime = clock() - time;
 
+    utility::LogDebug("Times: {} {} {}\n", corrTime, bAndSTime, tTime);
     return delta;
 }
 

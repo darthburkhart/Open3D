@@ -67,9 +67,9 @@ void FastGlobalRegistrationCuda::Initialize(
 
     /* 0) Extract feature from original point clouds */
     source_feature_extractor_.Compute(
-        source, geometry::KDTreeSearchParamHybrid(0.25, 100));
+        source, geometry::KDTreeSearchParamHybrid(8., 100));
     target_feature_extractor_.Compute(
-        target, geometry::KDTreeSearchParamHybrid(0.25, 100));
+        target, geometry::KDTreeSearchParamHybrid(8., 100));
     source_features_ = source_feature_extractor_.fpfh_features_;
     target_features_ = target_feature_extractor_.fpfh_features_;
 
@@ -108,6 +108,8 @@ double FastGlobalRegistrationCuda::NormalizePointClouds() {
     std::tie(mean_source_, scale_source) = source_.Normalize();
     std::tie(mean_target_, scale_target) = target_.Normalize();
     double scale_global = std::max(scale_source, scale_target);
+    utility::LogDebug("SCALES: {} {} // {}\n", scale_source, scale_target, scale_global);
+    scale_global = 1.0;
     source_.Rescale(scale_global);
     target_.Rescale(scale_global);
     return scale_global;
@@ -159,7 +161,7 @@ RegistrationResultCuda FastGlobalRegistrationCuda::DoSingleIteration(int iter) {
         mean_source_, mean_target_,
         device_->scale_global_);
     result.inlier_rmse_ = rmse;
-    utility::LogDebug("Iteration {}: inlier rmse = {}\n", iter, rmse);
+//    utility::LogDebug("Iteration {}: inlier rmse = {}\n", iter, rmse);
 
     if (iter % 4 == 0 && device_->par_ > 0.0f) {
         device_->par_ /= 1.4f;

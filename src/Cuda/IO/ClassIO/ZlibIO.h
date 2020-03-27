@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <zlib.h>
+#include <../3rdparty/zlib/zlib.h>
 
 namespace open3d {
 namespace io {
@@ -14,7 +14,7 @@ bool CompressAndWrite(std::vector<uchar> &compressed_buf,
                       const std::vector<T> &src,
                       FILE *&fid,
                       const std::string &msg) {
-    size_t compressed_len = compressed_buf.size();
+    uLongf compressed_len = compressed_buf.size();
     if (Z_OK != compress2(compressed_buf.data(), &compressed_len,
                           (uchar *)src.data(), src.size() * sizeof(T),
                           Z_BEST_SPEED)) {
@@ -73,7 +73,7 @@ bool ReadAndUncompress(std::vector<uchar> &compressed_buf,
         return false;
     }
 
-    size_t uncompressed_len = dst.size() * sizeof(float);
+    uLongf uncompressed_len = dst.size() * sizeof(float);
     if (Z_OK != uncompress((uchar *)dst.data(), &uncompressed_len,
                            compressed_buf.data(), compressed_len)) {
         utility::LogWarning("Uncompressing %s failed\n", msg.c_str());

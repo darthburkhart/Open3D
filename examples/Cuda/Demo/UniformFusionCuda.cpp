@@ -69,9 +69,13 @@ std::shared_ptr<Image> ConvertImageFromFloatImage(const Image &image) {
 int main(int argc, char *argv[]) {
     SetVerbosityLevel(VerbosityLevel::Debug);
 
-    std::string base_path = "/home/wei/Workspace/data/stanford/copyroom/";
+    SetVerbosityLevel(VerbosityLevel::Debug);
+int jj = 0;
+LogDebug("{}\n",jj++);
+    std::string base_path = "D:/InfiniTAM Data/lounge";
+    std::string base_path2 = "D:/InfiniTAM Data/lounge/frames2/";
     auto camera_trajectory = CreatePinholeCameraTrajectoryFromFile(
-            base_path + "/trajectory.log");
+            base_path + "/lounge_trajectory.log");
     auto rgbd_filenames =
             ReadDataAssociation(base_path + "/data_association.txt");
 
@@ -81,7 +85,8 @@ int main(int argc, char *argv[]) {
     cuda::PinholeCameraIntrinsicCuda intrinsics(
             PinholeCameraIntrinsicParameters::PrimeSenseDefault);
 
-    float voxel_length = 0.008f;
+//    float voxel_length = 0.008f;
+    float voxel_length = 0.1f;
     int voxel_resolution = 256;
     float offset = -voxel_length * voxel_resolution / 2;
     cuda::TransformCuda extrinsics = cuda::TransformCuda::Identity();
@@ -93,7 +98,7 @@ int main(int argc, char *argv[]) {
                                        voxel_resolution, 4000000, 8000000);
 
     Image depth, color;
-    cuda::RGBDImageCuda rgbd(640, 480, 4.0f, 1000.0f);
+    cuda::RGBDImageCuda rgbd(640, 480, 2.0f, 1000.0f);
 
     VisualizerWithCudaModule visualizer;
     if (!visualizer.CreateVisualizerWindow("UniformFusion", 640, 480, 0, 0)) {
@@ -103,15 +108,66 @@ int main(int argc, char *argv[]) {
     visualizer.BuildUtilities();
     visualizer.UpdateWindowTitle();
 
-    std::shared_ptr<TriangleMesh> mesh = std::make_shared<TriangleMesh>();
-    visualizer.AddGeometry(mesh);
+    std::shared_ptr<PointCloud> mesh = std::make_shared<PointCloud>();
+    std::shared_ptr<TriangleMesh> mesh2 = std::make_shared<TriangleMesh>();
 
-    for (int i = 0; i < 1200; ++i) {
+
+    ReadImage(base_path2 + rgbd_filenames[0].first, depth);
+    ReadImage(base_path2 + rgbd_filenames[0].second, color);
+    rgbd.Upload(depth, color);
+
+    /* Use ground truth trajectory */
+    Eigen::Matrix4d extrinsic =
+            camera_trajectory->parameters_[0].extrinsic_.inverse();
+
+    extrinsics.FromEigen(extrinsic);
+    tsdf_volume.Integrate(rgbd, intrinsics, extrinsics);
+
+    mesher.MarchingCubes(tsdf_volume);
+
+    *mesh2 = *(mesher.mesh().Download());
+//    *mesh = *(mesher.mesh().Download()->SamplePointsUniformly(10000));
+    visualizer.AddGeometry(mesh2);
+
+    visualizer.UpdateGeometry();
+
+
+
+//    bool finished = false;
+//    int iter = 1, max_iter = 1200;
+//    visualizer.RegisterKeyCallback(GLFW_KEY_SPACE, [&](Visualizer *vis) {
+//        if (finished) return false;
+
+//        ReadImage(base_path2 + rgbd_filenames[iter].first, depth);
+//        ReadImage(base_path2 + rgbd_filenames[iter].second, color);
+//        rgbd.Upload(depth, color);
+
+//        /* Use ground truth trajectory */
+//        Eigen::Matrix4d extrinsic =
+//                camera_trajectory->parameters_[iter].extrinsic_.inverse();
+
+//        extrinsics.FromEigen(extrinsic);
+//        tsdf_volume.Integrate(rgbd, intrinsics, extrinsics);
+
+//        mesher.MarchingCubes(tsdf_volume);
+
+//        *mesh2 = *(mesher.mesh().Download());
+
+//        vis->UpdateGeometry();
+
+//        iter++;
+//        /* Update flags */
+//        if (iter >= max_iter)
+//            finished = true;
+//        return !finished;
+//    });
+
+    for (int i = 1; i < 3003; ++i) {
         LogDebug("Processing frame {} ...\n", i);
-        std::cout << base_path + rgbd_filenames[i].first << "\n";
-        std::cout << base_path + rgbd_filenames[i].second << "\n";
-        ReadImage(base_path + rgbd_filenames[i].first, depth);
-        ReadImage(base_path + rgbd_filenames[i].second, color);
+        std::cout << base_path2 + rgbd_filenames[i].first << "\n";
+        std::cout << base_path2 + rgbd_filenames[i].second << "\n";
+        ReadImage(base_path2 + rgbd_filenames[i].first, depth);
+        ReadImage(base_path2 + rgbd_filenames[i].second, color);
         rgbd.Upload(depth, color);
 
         /* Use ground truth trajectory */
@@ -123,19 +179,26 @@ int main(int argc, char *argv[]) {
 
         mesher.MarchingCubes(tsdf_volume);
 
-        *mesh = *mesher.mesh().Download();
-        std::cout << mesh->vertices_.size() << "\n";
+        *mesh2 = *mesher.mesh().Download();
+        std::cout << mesh2->vertices_.size() << "\n";
+
         visualizer.PollEvents();
+
         visualizer.UpdateGeometry();
         visualizer.GetViewControl().ConvertFromPinholeCameraParameters(
                 camera_trajectory->parameters_[i]);
     }
 
     mesher.MarchingCubes(tsdf_volume);
-    *mesh = *mesher.mesh().Download();
-    io::WriteTriangleMesh("copyroom.ply", *mesh);
+    *mesh2 = *mesher.mesh().Download();
+    io::WriteTriangleMesh("copyroom.ply", *mesh2);
     io::WriteUniformTSDFVolumeToBIN("copyroom_uniform.bin", tsdf_volume);
 
+
+    bool should_close = false;
+    while (!should_close) {
+        should_close = !visualizer.PollEvents();
+    }
 //    io::ReadUniformTSDFVolumeFromBIN("copyroom_uniform_saved.bin", tsdf_volume);
 //    mesher.MarchingCubes(tsdf_volume);
 //

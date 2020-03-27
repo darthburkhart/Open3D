@@ -20,6 +20,7 @@ namespace cuda {
 class RGBDImageCudaDevice {
 public:
     ImageCudaDevice<ushort, 1> depth_raw_;
+//    ImageCudaDevice<uchar, 1> depth_raw_;
     ImageCudaDevice<uchar, 3> color_raw_;
 
     ImageCudaDevice<float, 1> depth_;
@@ -34,6 +35,7 @@ public:
     std::shared_ptr<RGBDImageCudaDevice> device_ = nullptr;
 
     /* Raw input */
+//    ImageCuda<uchar, 1> depth_raw_;
     ImageCuda<ushort, 1> depth_raw_;
     ImageCuda<uchar, 3> color_raw_;
 

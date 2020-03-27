@@ -21,6 +21,7 @@ int RegistrationForPointClouds(
     const std::string &target_ply_path,
     const TransformationEstimationType &type) {
 
+//    SetVerbosityLevel(VerbosityLevel::Fatal);
     SetVerbosityLevel(VerbosityLevel::Debug);
 
     auto source_origin = CreatePointCloudFromFile(source_ply_path);
@@ -31,12 +32,14 @@ int RegistrationForPointClouds(
         LogError("Point cloud does not have color, abort.\n");
         return -1;
     }
-    auto source_down = source_origin->VoxelDownSample(0.03);
-    auto target_down = target_origin->VoxelDownSample(0.03);
+    auto source_down = source_origin->VoxelDownSample(3.0);
+    auto target_down = target_origin->VoxelDownSample(3.0);
+    *source_origin = *source_down;
+    *target_origin = *target_down;
 
     /** Load data **/
     cuda::RegistrationCuda registration(type);
-    registration.Initialize(*source_origin, *target_origin, 0.07f);
+    registration.Initialize(*source_origin, *target_origin, 6.f);
 
     /** Prepare visualizer **/
     VisualizerWithCudaModule visualizer;
@@ -48,6 +51,27 @@ int RegistrationForPointClouds(
     visualizer.UpdateWindowTitle();
     visualizer.AddGeometry(source_origin);
     visualizer.AddGeometry(target_origin);
+
+//    clock_t time = clock();
+
+//    bool finished = false;
+//    int iter = 0, max_iter = 20;
+//    auto delta =registration.ComputeICP(3);
+////    auto delta = registration.DoSingleIteration(iter++);
+////    while (!finished) {
+////                delta = registration.DoSingleIteration(iter++)*delta;
+////                if (iter >= max_iter)
+////                    finished = true;
+////    }
+//    int val = clock() - time;
+//    LogFatal("time {}\n", val);
+
+//    source_origin->Transform(delta.transformation_);
+
+//    /* Updated source */
+//    visualizer.UpdateGeometry();
+
+
 
     bool finished = false;
     int iter = 0, max_iter = 50;
@@ -94,16 +118,20 @@ int main(int argc, char **argv) {
         LogInfo("Using registration type: %s.\n", str_type.c_str());
     } else {
         LogInfo("Using default registration type: ColoredICP.\n");
-        type = TransformationEstimationType ::ColoredICP;
+        type = TransformationEstimationType ::PointToPlane;
+//        type = TransformationEstimationType ::ColoredICP;
     }
 
     if (argc > 3) {
         source_path = argv[2];
         target_path = argv[3];
     } else {
-        std::string test_data_path = "../../../examples/TestData/ColoredICP";
-        source_path = test_data_path + "/frag_115.ply";
-        target_path = test_data_path + "/frag_116.ply";
+//        std::string test_data_path = "../../../examples/TestData/ColoredICP";
+//        source_path = test_data_path + "/frag_115.ply";
+//        target_path = test_data_path + "/frag_116.ply";
+        std::string test_data_path = "C:/Users/Seikowave/Desktop";
+        source_path = test_data_path + "/test150 - Cloud.ply";
+        target_path = test_data_path + "/test151 - Cloud.ply";
     }
 
     return RegistrationForPointClouds(source_path, target_path, type);

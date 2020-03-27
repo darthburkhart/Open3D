@@ -259,6 +259,8 @@ void PointCloudCudaKernelCaller::Normalize(
 
     const dim3 blocks(DIV_CEILING(pcl.points_.size(), THREAD_1D_UNIT));
     const dim3 threads(THREAD_1D_UNIT);
+    utility::LogDebug("{:d} {:d} {:d}.\n",
+                      threads.x, blocks.x, pcl.points_.size());
     SubMeanAndGetMaxScaleKernel <<<blocks, threads>>>(
         *pcl.device_, mean, *max_scale.device_);
     CheckCuda(cudaDeviceSynchronize());

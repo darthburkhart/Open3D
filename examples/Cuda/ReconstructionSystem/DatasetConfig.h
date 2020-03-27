@@ -207,7 +207,7 @@ public:
         return ss.str();
     }
 
-    bool ConvertToJsonValue(Json::Value &value) const override {}
+    bool ConvertToJsonValue(Json::Value &value) const override { return true;}
 
     bool ConvertFromJsonValue(const Json::Value &value) override {
         if (!value.isObject()) {

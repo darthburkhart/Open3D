@@ -238,7 +238,9 @@ void Visualizer::BuildUtilities() {
     glfwMakeContextCurrent(window_);
 
     // 0. Build coordinate frame
-    const auto boundingbox = GetViewControl().GetBoundingBox();
+    auto boundingbox = GetViewControl().GetBoundingBox();
+    boundingbox.min_bound_ = Eigen::Vector3d(-1000,-1000,-1000);
+    boundingbox.max_bound_ = Eigen::Vector3d(1000,1000,1000);
     coordinate_frame_mesh_ptr_ = geometry::TriangleMesh::CreateCoordinateFrame(
             boundingbox.GetMaxExtend() * 0.2, boundingbox.min_bound_);
     coordinate_frame_mesh_renderer_ptr_ =

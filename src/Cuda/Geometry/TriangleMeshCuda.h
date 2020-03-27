@@ -75,8 +75,19 @@ public:
 
     /* Temp */
     Eigen::Vector3d GetCenter() const override {return Eigen::Vector3d(0, 0, 0);};
-    geometry::AxisAlignedBoundingBox GetAxisAlignedBoundingBox() const override { return GetAxisAlignedBoundingBox(); };
-    geometry::OrientedBoundingBox GetOrientedBoundingBox() const override { return GetOrientedBoundingBox(); };
+    geometry::AxisAlignedBoundingBox GetAxisAlignedBoundingBox() const override {
+
+        std::vector<Eigen::Vector3d> points;
+        points.push_back(GetMinBound());
+        points.push_back(GetMaxBound());
+       return geometry::AxisAlignedBoundingBox::CreateFromPoints(points);}
+//        return GetAxisAlignedBoundingBox(); };
+    geometry::OrientedBoundingBox GetOrientedBoundingBox() const override {
+        std::vector<Eigen::Vector3d> points;
+        points.push_back(GetMinBound());
+        points.push_back(GetMaxBound());
+        return geometry::OrientedBoundingBox::CreateFromPoints(points);}
+//        return GetOrientedBoundingBox(); };
     TriangleMeshCuda &Translate(const Eigen::Vector3d &translation,
                               bool relative = true) override {return *this;} ;
     TriangleMeshCuda &Scale(const double scale, bool center = true) override {return *this;};

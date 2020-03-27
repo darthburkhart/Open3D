@@ -78,9 +78,9 @@ void VisualizeRegistration(const open3d::geometry::PointCloud &source,
 std::shared_ptr<open3d::registration::Feature> PreprocessPointCloud(
     open3d::geometry::PointCloud &pcd) {
     using namespace open3d;
-    pcd.EstimateNormals(open3d::geometry::KDTreeSearchParamHybrid(0.1, 30));
+    pcd.EstimateNormals(open3d::geometry::KDTreeSearchParamHybrid(6.0, 30));
     auto pcd_fpfh = registration::ComputeFPFHFeature(
-        pcd, open3d::geometry::KDTreeSearchParamHybrid(0.25, 100));
+        pcd, open3d::geometry::KDTreeSearchParamHybrid(8.0, 100));
     return pcd_fpfh;
 }
 
