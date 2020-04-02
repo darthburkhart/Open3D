@@ -38,6 +38,7 @@
 #include <Cuda/Registration/CorrespondenceSetCuda.h>
 #include <Cuda/Registration/RegistrationCuda.h>
 #include <Cuda/Registration/FastGlobalRegistrationCuda.h>
+#include <Cuda/Registration/FastGlobalRegistrationCuda2.h>
 
 #include <Cuda/Visualization/Visualizer/VisualizerWithCudaModule.h>
 #include <Cuda/Visualization/Utility/DrawGeometryWithCudaModule.h>

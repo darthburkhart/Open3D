@@ -6,5 +6,6 @@
 
 #include "FeatureExtractorCudaHost.hpp"
 #include "FastGlobalRegistrationCudaHost.hpp"
+#include "FastGlobalRegistrationCudaHost2.hpp"
 
 #include "RegistrationCudaHost.hpp"

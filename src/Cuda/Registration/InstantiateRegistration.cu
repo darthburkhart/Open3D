@@ -10,5 +10,8 @@
 #include "FastGlobalRegistrationCudaDevice.cuh"
 #include "FastGlobalRegistrationCudaKernel.cuh"
 
+#include "FastGlobalRegistrationCudaDevice2.cuh"
+#include "FastGlobalRegistrationCudaKernel2.cuh"
+
 #include "RegistrationCudaDevice.cuh"
 #include "RegistrationCudaKernel.cuh"
