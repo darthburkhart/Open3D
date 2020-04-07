@@ -302,12 +302,16 @@ __host__
 void PointCloudCudaKernelCaller::Transform(
     PointCloudCuda &pcl, TransformCuda &transform) {
 
+    cudaStream_t stream;
+    cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking);
     const dim3 blocks(DIV_CEILING(pcl.points_.size(), THREAD_1D_UNIT));
     const dim3 threads(THREAD_1D_UNIT);
 
-    TransformKernel << < blocks, threads >> > (*pcl.device_, transform);
-    CheckCuda(cudaDeviceSynchronize());
+    TransformKernel << < blocks, threads, 0 , stream >> > (*pcl.device_, transform);
+//    CheckCuda(cudaDeviceSynchronize());
+    CheckCuda(cudaStreamSynchronize(stream));
     CheckCuda(cudaGetLastError());
+    cudaStreamDestroy(stream);
 }
 } // cuda
 } // open3d

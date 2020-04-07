@@ -37,6 +37,7 @@
 #include <Cuda/Registration/FeatureExtractorCuda.h>
 #include <Cuda/Registration/CorrespondenceSetCuda.h>
 #include <Cuda/Registration/RegistrationCuda.h>
+#include <Cuda/Registration/RegistrationCuda2.h>
 #include <Cuda/Registration/FastGlobalRegistrationCuda.h>
 #include <Cuda/Registration/FastGlobalRegistrationCuda2.h>
 

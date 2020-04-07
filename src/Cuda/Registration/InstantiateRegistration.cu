@@ -15,3 +15,6 @@
 
 #include "RegistrationCudaDevice.cuh"
 #include "RegistrationCudaKernel.cuh"
+
+#include "RegistrationCudaDevice2.cuh"
+#include "RegistrationCudaKernel2.cuh"

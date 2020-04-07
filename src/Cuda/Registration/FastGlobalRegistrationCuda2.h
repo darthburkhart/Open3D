@@ -10,12 +10,35 @@
 #include <Cuda/Registration/FeatureExtractorCuda.h>
 #include <Cuda/Registration/RegistrationCuda.h>
 #include <Cuda/Geometry/NNCuda.h>
+#include <memory>
+#include <iostream>
 
 namespace open3d {
 namespace cuda {
 
-class FastGlobalRegistrationCudaDevice2 {
+class FastGlobalRegistrationCuda2;
+
+class FastGlobalRegistrationCudaKernelCaller2 {
 public:
+    static void Create(cudaStream_t &stream);
+    static void Destroy(cudaStream_t &stream);
+    static cudaStream_t GetStream();
+    static void ReciprocityTest(FastGlobalRegistrationCuda2 &fgr);
+    static void TupleTest(FastGlobalRegistrationCuda2 &fgr);
+    static void ComputeResultsAndTransformation(
+        FastGlobalRegistrationCuda2 &fgr);
+};
+
+class FastGlobalRegistrationCudaDevice2 {
+
+public:
+    FastGlobalRegistrationCudaDevice2() {
+    }
+    ~FastGlobalRegistrationCudaDevice2() {
+    }
+    cudaStream_t regStream;
+
+
     PointCloudCudaDevice source_;
     PointCloudCudaDevice target_;
 
@@ -110,16 +133,9 @@ private:
     int mSourceSize = 0;
 
     int mMaxFeatureNeighbors = 1000;
-    float mFeatureRadius = 8.0f;
+    float mFeatureRadius = 10.0f;
 };
 
-class FastGlobalRegistrationCudaKernelCaller2 {
-public:
-    static void ReciprocityTest(FastGlobalRegistrationCuda2 &fgr);
-    static void TupleTest(FastGlobalRegistrationCuda2 &fgr);
-    static void ComputeResultsAndTransformation(
-        FastGlobalRegistrationCuda2 &fgr);
-};
 
 __GLOBAL__
 void ReciprocityTestKernel2(FastGlobalRegistrationCudaDevice2 server);
@@ -128,8 +144,7 @@ void TupleTestKernel2(FastGlobalRegistrationCudaDevice2 server,
                      ArrayCudaDevice<float> random_numbers,
                      int tuple_tests);
 __GLOBAL__
-void ComputeResultsAndTransformationKernel2(
-    FastGlobalRegistrationCudaDevice2 server);
+void ComputeResultsAndTransformationKernel2(FastGlobalRegistrationCudaDevice2 server);
 
 } // cuda
 } // open3d

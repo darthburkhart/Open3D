@@ -37,6 +37,9 @@ public:
     ~NNCuda();
     void UpdateDevice();
 
+
+    void Create();
+    void Release();
     /** Should be feature_size x feature_count
      *  This will encourage cache hits in parallel kernels
      **/

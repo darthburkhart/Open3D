@@ -9,3 +9,4 @@
 #include "FastGlobalRegistrationCudaHost2.hpp"
 
 #include "RegistrationCudaHost.hpp"
+#include "RegistrationCudaHost2.hpp"

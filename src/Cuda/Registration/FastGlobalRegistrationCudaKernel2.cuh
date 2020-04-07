@@ -29,17 +29,45 @@ void ReciprocityTestKernel2(FastGlobalRegistrationCudaDevice2 device) {
     }
 }
 
+void FastGlobalRegistrationCudaKernelCaller2::Create(cudaStream_t &stream)
+{
+        cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking);
+}
+void FastGlobalRegistrationCudaKernelCaller2::Destroy(cudaStream_t &stream)
+{
+    cudaStreamDestroy(stream);
+}
+cudaStream_t FastGlobalRegistrationCudaKernelCaller2::GetStream()
+{
+    static bool done = false;
+    static cudaStream_t stream;
+    if (!done) {
+        Create(stream);
+        done = true;
+    }
+    return stream;
+}
+
 void FastGlobalRegistrationCudaKernelCaller2::ReciprocityTest(
     FastGlobalRegistrationCuda2 &fgr) {
     fgr.corres_mutual_.set_iterator(0);
-
+//    cudaStream_t stream1;
+//    int priority_high, priority_low;
+//    cudaDeviceGetStreamPriorityRange(&priority_low, &priority_high);
+//    cudaStreamCreateWithPriority(&stream1,cudaStreamNonBlocking,priority_high);
+//    cudaStreamCreateWithFlags(&stream1,cudaStreamNonBlocking);
     const dim3 blocks(
         DIV_CEILING(fgr.corres_source_to_target_.indices_.size(),
             THREAD_1D_UNIT));
     const dim3 threads(THREAD_1D_UNIT);
-    ReciprocityTestKernel2<<<blocks, threads>>>(*fgr.device_);
-    CheckCuda(cudaDeviceSynchronize());
+
+    ReciprocityTestKernel2<<<blocks, threads, 0 , GetStream()>>>(*fgr.device_);
+    //    CheckCuda(cudaDeviceSynchronize());
+//    CheckCuda(cudaStreamSynchronize(stream1));
+    CheckCuda(cudaStreamSynchronize(GetStream()));
+
     CheckCuda(cudaGetLastError());
+//    cudaStreamDestroy(stream1);
 }
 
 __global__
@@ -92,7 +120,11 @@ void FastGlobalRegistrationCudaKernelCaller2::TupleTest(
 
     ArrayCuda<float> random_numbers;
     random_numbers.Create(n);
-
+//    cudaStream_t stream1;
+//    int priority_high, priority_low;
+//    cudaDeviceGetStreamPriorityRange(&priority_low, &priority_high);
+//    cudaStreamCreateWithPriority(&stream1,cudaStreamNonBlocking,priority_high);
+//    cudaStreamCreateWithFlags(&stream1,cudaStreamNonBlocking);
     curandGenerator_t gen;
     curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT);
     curandSetPseudoRandomGeneratorSeed(gen, (unsigned int) std::time(NULL));
@@ -102,10 +134,14 @@ void FastGlobalRegistrationCudaKernelCaller2::TupleTest(
     const dim3 blocks(DIV_CEILING(tuple_tests, THREAD_1D_UNIT));
     const dim3 threads(THREAD_1D_UNIT);
 
-    TupleTestKernel2 << < blocks, threads >> > (
+    TupleTestKernel2 << < blocks, threads, 0 ,GetStream() >> > (
         *fgr.device_, *random_numbers.device_, tuple_tests);
-    CheckCuda(cudaDeviceSynchronize());
+    //    CheckCuda(cudaDeviceSynchronize());
+//    CheckCuda(cudaStreamSynchronize(stream1));
+    CheckCuda(cudaStreamSynchronize(GetStream()));
+
     CheckCuda(cudaGetLastError());
+//    cudaStreamDestroy(stream1);
 }
 
 __global__
@@ -197,10 +233,17 @@ void FastGlobalRegistrationCudaKernelCaller2::ComputeResultsAndTransformation(
 
     const dim3 blocks(DIV_CEILING(fgr.corres_final_.size(), THREAD_1D_UNIT));
     const dim3 threads(THREAD_1D_UNIT);
-    ComputeResultsAndTransformationKernel2<<<blocks, threads>>>(
+//    cudaStream_t stream1;
+//    int priority_high, priority_low;
+//    cudaDeviceGetStreamPriorityRange(&priority_low, &priority_high);
+//    cudaStreamCreateWithPriority(&stream1,cudaStreamNonBlocking,priority_high);
+//    cudaStreamCreateWithFlags(&stream1,cudaStreamNonBlocking);
+    ComputeResultsAndTransformationKernel2<<<blocks, threads,0, GetStream()>>>(
         *fgr.device_);
-    CheckCuda(cudaDeviceSynchronize());
+//    CheckCuda(cudaDeviceSynchronize());
+    CheckCuda(cudaStreamSynchronize(GetStream()));
     CheckCuda(cudaGetLastError());
+//    cudaStreamDestroy(stream1);
 }
 
 } // cuda

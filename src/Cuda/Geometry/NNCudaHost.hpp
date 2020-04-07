@@ -8,13 +8,30 @@ namespace open3d {
 namespace cuda {
 
 NNCuda::NNCuda() {
-    device_ = std::make_shared<NNCudaDevice>();
+    Create();
 }
 
 NNCuda::~NNCuda() {
-    device_ = nullptr;
+    Release();
 }
 
+void NNCuda::Create() {
+    if (device_ == nullptr) {
+        device_ = std::make_shared<NNCudaDevice>();
+    }
+}
+void NNCuda::Release() {
+    if (device_ != nullptr) {
+        query_.Release();
+        reference_.Release();
+
+        nn_idx_.Release();
+        nn_dist_.Release();
+
+        distance_matrix_.Release();
+    }
+    device_ = nullptr;
+}
 void NNCuda::UpdateDevice() {
     if (device_ != nullptr) {
         device_->query_ = *query_.device_;
