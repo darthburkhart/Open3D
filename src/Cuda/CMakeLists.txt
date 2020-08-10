@@ -34,6 +34,8 @@ file(GLOB_RECURSE CUDA_ALL_CUDA_SOURCE_FILES "*.cu")
 set(CUDA_NVCC_FLAGS
         -gencode=arch=compute_50,code=sm_60
         -gencode=arch=compute_50,code=sm_50
+	-gencode=arch=compute_70,code=sm_70
+	-gencode=arch=compute_75,code=sm_75
         --expt-relaxed-constexpr)
 
 # create (should be static) library

@@ -43,9 +43,9 @@ int main(int argc, char *argv[]) {
     SetVerbosityLevel(VerbosityLevel::Debug);
 int jj = 0;
 LogDebug("{}\n",jj++);
-    std::string base_path = "D:/InfiniTAM Data/lounge";
-    std::string base_path2 = "D:/InfiniTAM Data/lounge/frames2/";
-    auto camera_trajectory = CreatePinholeCameraTrajectoryFromFile(base_path + "/lounge_trajectory.log");
+    std::string base_path  = "C:/Users/agbur/Documents/Fusion Datasets/Copyroom";
+    std::string base_path2 = "C:/Users/agbur/Documents/Fusion Datasets/Copyroom/";
+    auto camera_trajectory = CreatePinholeCameraTrajectoryFromFile(base_path + "/copyroom_trajectory.log");
     auto rgbd_filenames = ReadDataAssociation(base_path + "/data_association.txt");
     LogDebug("{}\n",jj++);
 //    LogDebug("{} {}", rgbd_filenames[1].first, rgbd_filenames[1].second);
